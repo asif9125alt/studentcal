@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTech Grade Calculator</title>
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: #333;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.container {
+    width: 100%;
+    max-width: 1200px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    margin: 20px 0;
+}
+header {
+    background: #4a00e0;
+    color: white;
+    padding: 25px;
+    text-align: center;
+}
+h1 { font-size: 2.2rem; margin-bottom: 10px; }
+.description { font-size: 1.1rem; opacity: 0.9; }
+.calculator-container { display: flex; flex-wrap: wrap; padding: 20px; }
+.input-section, .result-section {
+    flex: 1; min-width: 300px; padding: 20px;
+}
+.result-section {
+    background: #f9f9f9; border-radius: 10px;
+}
+.form-group { margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
+input, select {
+    width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px;
+    font-size: 16px; transition: border-color 0.3s;
+}
+input:focus, select:focus { border-color: #4a00e0; outline: none; }
+button {
+    background: #4a00e0; color: white; border: none;
+    padding: 12px 20px; border-radius: 8px; cursor: pointer;
+    font-size: 16px; font-weight: 600; transition: background 0.3s;
+    width: 100%; margin-top: 10px;
+}
+button:hover { background: #3a00b0; }
+.result-box { text-align: center; padding: 20px; }
+.cgpa-display {
+    font-size: 3rem; font-weight: bold; color: #4a00e0; margin: 20px 0;
+}
+#suggestions-text {
+    margin-top: 18px;
+    font-size: 1rem;
+    line-height: 1.4;
+    font-weight: 600;
+    color: #444;
+}
+.semester-results { margin-top: 30px; }
+.semester-card {
+    background: white; padding: 15px; border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+.semester-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+}
+.semester-details {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    display: none;
+}
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+.details-table th, .details-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+.details-table th {
+    background-color: #e9ecef;
+}
+.delete-btn {
+    background: #ff4757; color: white; border: none; padding: 8px 12px;
+    border-radius: 5px; cursor: pointer; width: auto;
+}
+.delete-btn:hover { background: #ff2e43; }
+.toggle-details {
+    background: #6c757d; color: white; border: none; padding: 5px 10px;
+    border-radius: 5px; cursor: pointer; margin-left: 10px;
+}
+.toggle-details:hover { background: #5a6268; }
+.instructions {
+    background: #ffeaa7; padding: 15px; border-radius: 8px;
+    margin-top: 20px; font-size: 0.9rem;
+}
+.subject-table {
+    width: 100%; border-collapse: collapse; margin: 15px 0;
+}
+.subject-table th, .subject-table td {
+    padding: 10px; text-align: left; border-bottom: 1px solid #ddd;
+}
+.subject-table th { background-color: #f2f2f2; font-weight: 600; }
+.subject-table input { width: 80px; padding: 8px; text-align: center; }
+.tabs { display: flex; margin-bottom: 20px; }
+.tab {
+    padding: 10px 20px; background: #e0e0e0; cursor: pointer;
+    border-radius: 5px 5px 0 0; margin-right: 5px;
+}
+.tab.active { background: #4a00e0; color: white; }
+.fail { background-color: #ffcccc; color: #d63031; font-weight: bold; }
+.grade-display { font-weight: 600; margin-left: 10px; }
+.subject-row { transition: background-color 0.3s; }
+@media (max-width: 768px) {
+    .calculator-container { flex-direction: column; }
+    .subject-table { font-size: 14px; }
+    .subject-table input { width: 60px; }
+    .semester-header { flex-direction: column; align-items: flex-start; }
+    .semester-header div { margin-bottom: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+    <h1>student Grade Calculator</h1>
+    <p class="description">Calculate your SGPA and CGPA based on subject marks</p>
+</header>
+
+<div class="calculator-container">
+<div class="input-section">
+    <div class="tabs">
+        <div class="tab active" data-tab="theory">Theory Subjects</div>
+        <div class="tab" data-tab="labs">Laboratory Subjects</div>
+    </div>
+
+    <div class="form-group">
+        <label for="semester">Select Semester</label>
+        <select id="semester">
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4">Semester 4</option>
+            <option value="5">Semester 5</option>
+            <option value="6">Semester 6</option>
+            <option value="7">Semester 7</option>
+            <option value="8">Semester 8</option>
+        </select>
+    </div>
+
+    <!-- Theory Subjects Table -->
+    <div id="theory-tab">
+        <h3>Theory Subjects</h3>
+        <table class="subject-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Credits</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="subject-row">
+                    <td>subject 1</td>
+                    <td><input type="number" class="credit-input" value="4" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+                <tr class="subject-row">
+                    <td>subject 2</td>
+                    <td><input type="number" class="credit-input" value="4" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+                <tr class="subject-row">
+                    <td>subject 3</td>
+                    <td><input type="number" class="credit-input" value="3" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+                <tr class="subject-row">
+                   <td>subject 4</td>
+                    <td><input type="number" class="credit-input" value="3" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+                <tr class="subject-row">
+                    <td>subject 5</td>
+                    <td><input type="number" class="credit-input" value="3" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Laboratory Subjects Table -->
+    <div id="labs-tab" style="display: none;">
+        <h3>Subjects </h3>
+        <table class="subject-table">
+            <thead>
+                <tr>
+                    <th>laboratory Subject</th>
+                    <th>Credits</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="subject-row">
+                    <td> Lab 1</td>
+                    <td><input type="number" class="credit-input" value="2" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+                <tr class="subject-row">
+                    <td> Lab 2</td>
+                    <td><input type="number" class="credit-input" value="2" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+                <tr class="subject-row">
+                    <td>Lab 3</td>
+                    <td><input type="number" class="credit-input" value="1" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+                <tr class="subject-row">
+                    <td>Project Work</td>
+                    <td><input type="number" class="credit-input" value="3" min="1" max="10"></td>
+                    <td><input type="number" class="marks-input" min="0" max="100"></td>
+                    <td><span class="grade-display">-</span></td>
+                    <td class="status">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button id="calculate-sgpa">Calculate SGPA</button>
+    <button id="add-semester">Add Semester to CGPA</button>
+
+    <div class="instructions">
+        <h4>How to use:</h4>
+        <p>1. Select your semester</p>
+        <p>2. Enter marks for each subject (theory and labs)</p>
+        <p>3. Click "Calculate SGPA" to see your semester grade</p>
+        <p>4. Click "Add Semester to CGPA" to include it in your cumulative GPA</p>
+        <p>5. Repeat for all completed semesters</p>
+        <p>6. Click on a semester in the list to view detailed marks</p>
+    </div>
+</div>
+
+<div class="result-section">
+    <h2>Your Academic Summary</h2>
+    <div class="result-box">
+        <p>Current Semester SGPA</p>
+        <div class="cgpa-display" id="sgpa-value">0.00</div>
+
+        <p>Overall CGPA</p>
+        <div class="cgpa-display" id="cgpa-value">0.00</div>
+        <p id="summary-text">No semesters added yet</p>
+
+        <!-- ✅ Suggestions area -->
+        <p id="suggestions-text"></p>
+    </div>
+
+    <div class="semester-results">
+        <h3>Semesters Added</h3>
+        <div id="semesters-list"></div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.tab');
+    const theoryTab = document.getElementById('theory-tab');
+    const labsTab = document.getElementById('labs-tab');
+    const semesters = [];
+    const calculateSgpaBtn = document.getElementById('calculate-sgpa');
+    const addSemesterBtn = document.getElementById('add-semester');
+    const sgpaValue = document.getElementById('sgpa-value');
+    const cgpaValue = document.getElementById('cgpa-value');
+    const summaryText = document.getElementById('summary-text');
+    const semestersList = document.getElementById('semesters-list');
+    const suggestionsText = document.getElementById('suggestions-text');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            theoryTab.style.display = (this.dataset.tab === 'theory') ? 'block' : 'none';
+            labsTab.style.display = (this.dataset.tab === 'labs') ? 'block' : 'none';
+        });
+    });
+
+    function calculateGradePoint(marks) {
+        if (marks >= 90) return 10;
+        if (marks >= 80) return 9;
+        if (marks >= 70) return 8;
+        if (marks >= 60) return 7;
+        if (marks >= 50) return 6;
+        if (marks >= 45) return 5;
+        if (marks >= 40) return 4;
+        return 0;
+    }
+
+    // status update for each subject
+    document.querySelectorAll('.marks-input').forEach(input => {
+        input.addEventListener('input', function () {
+            const marks = parseFloat(this.value);
+            const row = this.closest('tr');
+            const gradeDisplay = row.querySelector('.grade-display');
+            const statusDisplay = row.querySelector('.status');
+
+            if (!isNaN(marks)) {
+                const gradePoint = calculateGradePoint(marks);
+                gradeDisplay.textContent = gradePoint;
+                if (marks < 40) {
+                    row.classList.add('fail');
+                    statusDisplay.textContent = 'Fail';
+                    statusDisplay.style.color = '#d63031';
+                    statusDisplay.style.fontWeight = 'bold';
+                } else {
+                    row.classList.remove('fail');
+                    statusDisplay.textContent = 'Pass';
+                    statusDisplay.style.color = '#00b894';
+                    statusDisplay.style.fontWeight = 'bold';
+                }
+            } else {
+                gradeDisplay.textContent = '-';
+                statusDisplay.textContent = '-';
+                row.classList.remove('fail');
+                statusDisplay.style.color = 'inherit';
+                statusDisplay.style.fontWeight = 'normal';
+            }
+        });
+    });
+
+    // ---- SGPA calculation with failure message ----
+    calculateSgpaBtn.addEventListener('click', function () {
+        let totalCredits = 0, totalGradePoints = 0, hasFailures = false;
+
+        document.querySelectorAll('#theory-tab tbody tr, #labs-tab tbody tr').forEach(row => {
+            const credits = parseFloat(row.querySelector('.credit-input').value);
+            const marks = parseFloat(row.querySelector('.marks-input').value);
+            if (!isNaN(marks)) {
+                const gp = calculateGradePoint(marks);
+                totalCredits += credits;
+                totalGradePoints += credits * gp;
+                if (marks < 40) hasFailures = true;
+            }
+        });
+
+        if (hasFailures) {
+            sgpaValue.textContent = 'Failed';
+            sgpaValue.style.color = '#d63031';
+            suggestionsText.style.color = '#d63031';
+            suggestionsText.textContent =
+                "This semester shows a failing SGPA, but this is only a temporary setback. "
+                + "Revisit your weaker subjects, talk to your professors about areas you struggled with, "
+                + "form or join a focused study group, and create a weekly plan that includes revision and mock tests. "
+                + "Remember, many successful engineers faced failures early on—your determination to learn from this is what matters most.";
+            return;
+        }
+
+        if (totalCredits > 0) {
+            const sgpa = totalGradePoints / totalCredits;
+            sgpaValue.textContent = sgpa.toFixed(2);
+            sgpaValue.style.color = '#4a00e0';
+            suggestionsText.textContent = ''; // clear any old message if just calculating SGPA
+        } else {
+            alert('Please enter marks for at least one subject');
+        }
+    });
+
+    // Add semester to CGPA
+    addSemesterBtn.addEventListener('click', function () {
+        const semesterSelect = document.getElementById('semester');
+        const semesterName = semesterSelect.options[semesterSelect.selectedIndex].text;
+        const sgpa = parseFloat(sgpaValue.textContent);
+        if (isNaN(sgpa) || sgpa === 0) {
+            alert('Please calculate SGPA first');
+            return;
+        }
+
+        // Collect subject data
+        const subjects = [];
+        document.querySelectorAll('#theory-tab tbody tr, #labs-tab tbody tr').forEach(row => {
+            const subjectName = row.querySelector('td:first-child').textContent;
+            const credits = parseFloat(row.querySelector('.credit-input').value);
+            const marks = parseFloat(row.querySelector('.marks-input').value);
+            const grade = row.querySelector('.grade-display').textContent;
+            
+            if (!isNaN(marks)) {
+                subjects.push({
+                    name: subjectName,
+                    credits: credits,
+                    marks: marks,
+                    grade: grade
+                });
+            }
+        });
+
+        let totalCredits = 0;
+        document.querySelectorAll('#theory-tab .credit-input, #labs-tab .credit-input').forEach(input => {
+            totalCredits += parseFloat(input.value);
+        });
+
+        semesters.push({ 
+            name: semesterName, 
+            credits: totalCredits, 
+            sgpa: sgpa,
+            subjects: subjects
+        });
+        updateSemestersList();
+        calculateCGPA();
+
+        // reset inputs
+        document.querySelectorAll('.marks-input').forEach(i => i.value = '');
+        document.querySelectorAll('.grade-display').forEach(el => el.textContent = '-');
+        document.querySelectorAll('.status').forEach(el => { el.textContent = '-'; el.style.color = 'inherit'; });
+        document.querySelectorAll('.subject-row').forEach(row => row.classList.remove('fail'));
+        sgpaValue.textContent = '0.00';
+        sgpaValue.style.color = '#4a00e0';
+    });
+
+    function updateSemestersList() {
+        semestersList.innerHTML = '';
+        semesters.forEach((sem, i) => {
+            const el = document.createElement('div');
+            el.className = 'semester-card';
+            el.innerHTML = `
+                <div class="semester-header">
+                    <div><strong>${sem.name}</strong> (${sem.credits} credits)</div>
+                    <div>
+                        SGPA: ${sem.sgpa.toFixed(2)}
+                        <button class="toggle-details">View Details</button>
+                        <button class="delete-btn">Delete</button>
+                    </div>
+                </div>
+                <div class="semester-details">
+                    <h4>Subject Details:</h4>
+                    <table class="details-table">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Credits</th>
+                                <th>Marks</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sem.subjects.map(subject => `
+                                <tr class="${subject.marks < 40 ? 'fail' : ''}">
+                                    <td>${subject.name}</td>
+                                    <td>${subject.credits}</td>
+                                    <td>${subject.marks}</td>
+                                    <td>${subject.grade}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // Toggle details view
+            const toggleBtn = el.querySelector('.toggle-details');
+            const detailsSection = el.querySelector('.semester-details');
+            
+            toggleBtn.addEventListener('click', () => {
+                const isVisible = detailsSection.style.display === 'block';
+                detailsSection.style.display = isVisible ? 'none' : 'block';
+                toggleBtn.textContent = isVisible ? 'View Details' : 'Hide Details';
+            });
+            
+            // Delete semester
+            el.querySelector('.delete-btn').addEventListener('click', () => {
+                semesters.splice(i, 1);
+                updateSemestersList();
+                calculateCGPA();
+            });
+            
+            semestersList.appendChild(el);
+        });
+    }
+
+    // ---- CGPA calculation with detailed suggestions ----
+    function calculateCGPA() {
+        let totalCredits = 0, totalGradePoints = 0;
+        semesters.forEach(s => {
+            totalCredits += s.credits;
+            totalGradePoints += s.credits * s.sgpa;
+        });
+
+        if (totalCredits > 0) {
+            const cgpa = totalGradePoints / totalCredits;
+            cgpaValue.textContent = cgpa.toFixed(2);
+            summaryText.textContent =
+                `Based on ${semesters.length} semester${semesters.length !== 1 ? 's' : ''}, ${totalCredits} total credits`;
+
+            if (cgpa < 4) {
+                suggestionsText.style.color = '#c0392b';
+                suggestionsText.textContent =
+                    "Your overall CGPA is currently below 4. This can feel discouraging, "
+                    + "but remember that grades are a snapshot, not your entire story. "
+                    + "Seek academic counselling, attend extra tutorials, and meet professors "
+                    + "to create a recovery roadmap. Focus on mastering fundamentals—steady daily practice "
+                    + "and seeking help early will set you up for a strong comeback.";
+            } else if (cgpa < 6) {
+                suggestionsText.style.color = '#e67e22';
+                suggestionsText.textContent =
+                    "Your CGPA is in the 4–6 range. You can absolutely raise it! "
+                    + "Re-evaluate your study schedule, take advantage of office hours, "
+                    + "and solve previous years’ papers to build confidence. "
+                    + "Identify 2–3 subjects where you can score higher next semester "
+                    + "and dedicate extra revision sessions to them.";
+            } else if (cgpa < 7) {
+                suggestionsText.style.color = '#f39c12';
+                suggestionsText.textContent =
+                    "A CGPA between 6 and 7 shows consistent effort. To push it higher, "
+                    + "focus on conceptual clarity rather than rote memorization. "
+                    + "Consider joining a peer study group and teaching difficult topics to friends—"
+                    + "explaining concepts is a proven way to boost retention and marks.";
+            } else if (cgpa < 8) {
+                suggestionsText.style.color = '#27ae60';
+                suggestionsText.textContent =
+                    "Great job maintaining a CGPA in the 7–8 range! "
+                    + "For that extra edge, attempt challenging assignments, explore research or mini-projects, "
+                    + "and keep refining your exam strategy to capture every possible mark.";
+            } else {
+                suggestionsText.style.color = '#2ecc71';
+                suggestionsText.textContent =
+                    "Excellent work! A CGPA above 8 demonstrates dedication and smart study habits. "
+                    + "Continue balancing academics with practical projects, internships, and skill development "
+                    + "so that your strong record is matched by real-world experience.";
+            }
+        } else {
+            cgpaValue.textContent = '0.00';
+            summaryText.textContent = 'No semesters added yet';
+            suggestionsText.textContent = '';
+        }
+    }
+});
+</script>
+</body>
+</html>
